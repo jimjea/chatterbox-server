@@ -27,7 +27,7 @@ exports.handleRequest = function(request, response) {
   var statusCode = 200;
   var responseI;
   var spliced = request.url.indexOf("?") === -1 ? request.url : request.url.slice(0, request.url.indexOf("?"));
-  if ("/classes/messages" === spliced) {
+  if (spliced.indexOf('/classes') !== -1) {
     if (request.method === "POST") {
       statusCode = 201;
       request.on('data', function(data) {
