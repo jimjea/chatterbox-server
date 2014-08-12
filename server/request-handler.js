@@ -4,8 +4,8 @@
  * You'll have to figure out a way to export this function from
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
-
-var handleRequest = function(request, response) {
+var results = [];
+exports.handleRequest = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
   request - such as what URL the browser is requesting. */
 
@@ -13,14 +13,36 @@ var handleRequest = function(request, response) {
    * http://nodemanual.org/0.8.14/nodejs_ref_guide/http.html */
 
   console.log("Serving request type " + request.method + " for url " + request.url);
-
-  var statusCode = 200;
-
   /* Without this line, this server wouldn't work. See the note
    * below about CORS. */
+
+  console.log(response)
+
+
+
   var headers = defaultCorsHeaders;
 
   headers['Content-Type'] = "text/plain";
+
+  var statusCode = 200;
+  var responseI;
+  var spliced = request.url.indexOf("?") === -1 ? request.url : request.url.slice(0, request.url.indexOf("?"));
+  if ("/classes/messages" === spliced) {
+    if (request.method === "POST") {
+      statusCode = 201;
+      request.on('data', function(data) {
+        results.push(JSON.parse(data+''));
+      });
+      // responseI = responseData;
+      // store message in results array
+    } else {
+      responseI = {results: results};
+    }
+  } else {
+    responseI = "error";
+    statusCode = 404;
+  }
+
 
   /* .writeHead() tells our server what HTTP status code to send back */
   response.writeHead(statusCode, headers);
@@ -29,7 +51,7 @@ var handleRequest = function(request, response) {
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-  response.end("Hello, World!");
+  response.end(JSON.stringify(responseI));
 };
 
 /* These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -40,6 +62,6 @@ var handleRequest = function(request, response) {
 var defaultCorsHeaders = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type, accept",
+  "access-control-allow-headers": "content-type, accept, X-Parse-Application-Id, X-Parse-REST-API-Key",
   "access-control-max-age": 10 // Seconds.
 };
